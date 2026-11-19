@@ -1,4 +1,4 @@
-# BIGFIX- Compromised Microsoft Python Agent-Framework (Supply Chain Attack) Detection
+# BIGFIX- Microsoft Agent Framework PyPI Supply Chain Attack Detection
 
 Detect indicators from the malicious PyPI releases of `agent-framework` **1.26.1** and **1.26.2** on Windows, Linux, and macOS. The malicious wheels added a Python startup hook that could run without an application importing the framework. [PyPA advisory PYSEC-2026-4388](https://osv.dev/vulnerability/PYSEC-2026-4388)
 
