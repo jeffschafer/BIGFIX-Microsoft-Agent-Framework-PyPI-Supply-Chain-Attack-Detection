@@ -4,11 +4,11 @@
     <Title>Bigfix Analysis - Microsoft Agent Framework PyPI Compromise</Title>
     <Description><![CDATA[
 <p>Detects PyPI <code>agent-framework</code> versions 1.26.1 and 1.26.2 (PYSEC-2026-4388), known installed artifact names and RECORD digests, startup-hook and module hashes in the relevant package paths, and either malicious wheel hash under standard user Downloads folders. Any one indicator returns TRUE with the matched path.</p>
-<p>Windows scope includes Python3xx folders under the OS drive root, Program Files and Program Files (x86), Python installs under user AppData Local and Roaming, and .venv directly under user profiles. Linux scope includes versioned Python library folders under /usr and /usr/local, user .local libraries under /home and /root, and virtual environments at /opt/venv, /app/.venv and /workspace/.venv.</p>
+<p>Windows scope includes Python3xx folders under the OS drive root, Program Files and Program Files (x86), Python installs under user AppData Local and Roaming, and .venv directly under user profiles. Linux scope includes versioned Python library folders under /usr and /usr/local, user .local libraries under /home and /root, and virtual environments at /opt/venv, /app/.venv and /workspace/.venv. macOS scope includes Python.org framework installs, standard Homebrew library paths and versioned Python kegs, /Library/Python, and standard per-user Library/Python, .local libraries, and .venv directly under home folders.</p>
 <p>FALSE applies only to visible artifacts in those locations. A filename or metadata hit is an indicator and does not establish execution or exfiltration. Check custom Python prefixes, other virtual environments, WSL, containers, package caches and historical CI artifacts separately. This Analysis reads files without starting Python or pip. Hunt the defanged network IOC <code>webhook[.]site/d381fd80-ec62-42ad-8f5c-d1b15103c9bb</code> in proxy or EDR telemetry.</p>
 <p><a href="https://osv.dev/vulnerability/PYSEC-2026-4388">PyPA advisory PYSEC-2026-4388</a></p>
     ]]></Description>
-    <Relevance><![CDATA[windows of operating system or linux of operating system]]></Relevance>
+    <Relevance><![CDATA[windows of operating system or linux of operating system or mac of operating system]]></Relevance>
     <Property Name="IOC Found-" ID="1" EvaluationPeriod="PT6H"><![CDATA[
 (if it = "" then "FALSE" else if length of it > 4096 then "TRUE - " & first 4096 of it & "%0a[additional paths truncated]" else "TRUE - " & it)
 of concatenation "%0a" of unique values of pathnames of
@@ -39,6 +39,21 @@ of concatenation "%0a" of unique values of pathnames of
        folders ".venv" of folders of folders "Users" of parent folder of windows folder);
     folders "site-packages" of folders whose (name of it as lowercase contains regex "^python3[0-9]+$")
       of folders "AppData\Roaming\Python" of folders of folders "Users" of parent folder of windows folder)
+  else if mac of operating system then
+    (folders "site-packages" of folders whose (name of it contains regex "^python3[.][0-9]+$")
+      of (folders ("/usr/local/lib"; "/opt/homebrew/lib");
+          folders "lib" of folders whose (name of it contains regex "^3[.][0-9]+$")
+            of (folders "/Library/Frameworks/Python.framework/Versions";
+                folders "Library/Frameworks/Python.framework/Versions" of (folders of folders "/Users"; folders "/var/root");
+                folders "Frameworks/Python.framework/Versions"
+                  of folders whose (name of it contains regex "^python@3[.][0-9]+$")
+                  of folders ("/usr/local/opt"; "/opt/homebrew/opt"));
+          folders "lib" of folders whose (name of it contains regex "^python@3[.][0-9]+$")
+            of folders ("/usr/local/opt"; "/opt/homebrew/opt");
+          folders (".local/lib"; ".venv/lib") of (folders of folders "/Users"; folders "/var/root"));
+     folders "site-packages" of folders whose (name of it contains regex "^3[.][0-9]+$") of folders "/Library/Python";
+     folders "lib/python/site-packages" of folders whose (name of it contains regex "^3[.][0-9]+$")
+       of folders "Library/Python" of (folders of folders "/Users"; folders "/var/root"))
   else
     folders ("site-packages"; "dist-packages") of folders whose (name of it contains regex "^python3[.][0-9]+$")
       of (folders ("/usr/lib"; "/usr/lib64"; "/usr/local/lib"; "/usr/local/lib64"; "/opt/venv/lib"; "/app/.venv/lib"; "/workspace/.venv/lib");
@@ -47,6 +62,8 @@ of concatenation "%0a" of unique values of pathnames of
     whose (size of it <= 1048576 and (sha256 of it = "d27fa34414e6201d5e03e559ef634f020057554d7b3f4898dd5d7cd3e989e110" or sha256 of it = "3d20a8bc91351a9a16b6db243b848ceca0206b7a8623b02d2af553a9c9f7e0a9"))
     of (if windows of operating system then
       folders "Downloads" of folders of folders "Users" of parent folder of windows folder
+    else if mac of operating system then
+      folders "Downloads" of (folders of folders "/Users"; folders "/var/root")
     else folders "Downloads" of (folders of folders "/home"; folders "/root"))
 )
     ]]></Property>
