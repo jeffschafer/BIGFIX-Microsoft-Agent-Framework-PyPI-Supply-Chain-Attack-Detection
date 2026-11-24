@@ -2,6 +2,11 @@
 
 Detect indicators from the malicious PyPI releases of `agent-framework` **1.26.1** and **1.26.2** on Windows, Linux, and macOS. The malicious wheels added a Python startup hook that could run without an application importing the framework. [PyPA advisory PYSEC-2026-4388](https://osv.dev/vulnerability/PYSEC-2026-4388)
 
+<a href="https://buymeacoffee.com/jeffschafer">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png"
+       alt="Buy Me a Coffee" width="217" height="60">
+</a>
+
 ## Use
 
 1. Download [Agent_Framework_PyPI_Compromise_Analysis.bes](Agent_Framework_PyPI_Compromise_Analysis.bes) and import it into a BigFix custom site.
